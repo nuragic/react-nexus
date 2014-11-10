@@ -3,7 +3,7 @@ module.exports = function(R) {
     const _ = require("lodash");
     const assert = require("assert");
     const should = R.should;
-    
+
     let request;
     if(R.isClient()) {
         request = require("browser-request");
@@ -240,7 +240,7 @@ module.exports = function(R) {
             let eventName = params.eventName;
             let eventParams = params.params;
             if(_.has(this._listeners, eventName)) {
-                Object.keys(this._listeners[eventName], (fn) => {
+                Object.keys(this._listeners[eventName]).forEach((fn) => {
                     fn(eventParams);
                 });
             }

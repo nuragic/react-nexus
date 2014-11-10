@@ -1,10 +1,11 @@
 module.exports = function(R) {
-    var _ = require("lodash");
-    var assert = require("assert");
-    var recase = require("change-case");
-    var parse = require("css-parse");
-    var _autoprefixer = require("autoprefixer-core");
-    var CleanCSS = require("clean-css");
+    const _ = require("lodash");
+    const assert = require("assert");
+    const recase = require("change-case");
+    const parse = require("css-parse");
+    const _autoprefixer = require("autoprefixer-core");
+    const CleanCSS = require("clean-css");
+    const should = R.should;
 
     var Style = function Style(style) {
         return Style.slowlyProcessReactStyle(style);
@@ -12,26 +13,26 @@ module.exports = function(R) {
 
     _.extend(Style, {
         Processors: {
-            autoprefixer: function autoprefixer(css) {
+            autoprefixer(css) {
                 return _autoprefixer.process(css).css;
             },
-            min: function min(css) {
+             min(css) {
                 return new CleanCSS().minify(css);
             },
         },
         _processors: [],
-        registerCSSProcessor: function registerCSSProcessor(process) {
+        registerCSSProcessor(process) {
             R.Style._processors.push(process);
         },
-        applyAllProcessors: function applyAllProcessors(css) {
-            var rCSS = css;
-            _.each(Style._processors, function(process) {
+        applyAllProcessors(css) {
+            let rCSS = css;
+            Object.keys(Style._processors).forEach((process) => {
                 rCSS = process(rCSS);
             });
             return rCSS;
         },
         slowlyProcessReactStyle: function slowlyProcessReactStyle(style) {
-            var css = R.Style.applyAllProcessors("* {\n" + R.Style.getCSSFromReactStyle(style) + "}\n");
+            let css = R.Style.applyAllProcessors("* {\n" + R.Style.getCSSFromReactStyle(style) + "}\n");
             return R.Style.slowlyGetReactStyleFromCSS(css);
         },
         getCSSFromReactStyle: function getCSSFromReactStyle(style, indent) {
@@ -44,8 +45,8 @@ module.exports = function(R) {
             }).join("");
         },
         slowlyGetReactStyleFromCSS: function slowlyGetReactStyleFromCSS(css) {
-            var style = {};
-            var parsed = parse(css);
+            let style = {};
+            let parsed = parse(css);
             R.Debug.dev(function() {
                 assert(_.size(parsed.stylesheet.rules) === 1, "R.Style.slowlyGetReactStyleFromCSS(...): expecting only 1 set of rules.");
             });

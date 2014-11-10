@@ -1,6 +1,6 @@
 module.exports = function(R) {
-    const _ = require("lodash");
-    const assert = require("assert");
+    const _ = require('lodash');
+    const assert = require('assert');
     const should = R.should;
 
     const defaultParams = {
@@ -17,7 +17,7 @@ module.exports = function(R) {
             this.dispatcherName = dispatcherName;
             this.eventEmitterName = eventEmitterName;
             this.params = params || {};
-            _.defaults(params, defaultParams);
+            _.defaults(this.params, defaultParams);
         }
 
         getDisplayName(){
@@ -25,7 +25,7 @@ module.exports = function(R) {
         }
 
         installInClient(flux, window) {
-            flux.getDispatcher(dispatcherName).addActionListener('/Window/scrollTo', (params) => {
+            flux.getDispatcher(this.dispatcherName).addActionListener('/Window/scrollTo', (params) => {
                 return _.copromise(function* () {
                     _.dev(() =>
                         params.should.be.an.Object &&
@@ -39,33 +39,40 @@ module.exports = function(R) {
                 }, this);
             });
             window.addEventListener('scroll', () => {
-                flux.getStore(storeName).set('/Window/scrollTop', window.scrollTop);
-                flux.getStore(storeName).set('/Window/scrollLeft', window.scrollLeft);
-                flux.getEventEmitter(eventEmitterName).emit("/Window/scroll", {
+                flux.getStore(this.storeName).set('/Window/scrollTop', window.scrollTop);
+                flux.getStore(this.storeName).set('/Window/scrollLeft', window.scrollLeft);
+                flux.getEventEmitter(this.eventEmitterName).emit('/Window/scroll', {
                     scrollTop: window.scrollTop,
                     scrollLeft: window.scrollLeft,
                 });
             });
             window.addEventListener('resize', () => {
-                flux.getStore(storeName).set('/Window/height', window.innerHeight);
-                flux.getStore(storeName).set('/Window/width', window.innerWidth);
-                flux.getEventEmitter(eventEmitterName).emit('/Window/resize', {
+                flux.getStore(this.storeName).set('/Window/height', window.innerHeight);
+                flux.getStore(this.storeName).set('/Window/width', window.innerWidth);
+                flux.getEventEmitter(this.eventEmitterName).emit('/Window/resize', {
                     height: window.innerHeight,
                     width: window.innerWidth,
                 });
             });
-            flux.getStore(storeName).set('/Window/height', window.innerHeight);
-            flux.getStore(storeName).set('/Window/width', window.innerWidth);
-            flux.getStore(storeName).set('/Window/scrollTop', window.scrollTop);
-            flux.getStore(storeName).set('/Window/scrollLeft', window.scrollLeft);
+            flux.getStore(this.storeName).set('/Window/height', window.innerHeight);
+            flux.getStore(this.storeName).set('/Window/width', window.innerWidth);
+            flux.getStore(this.storeName).set('/Window/scrollTop', window.scrollTop);
+            flux.getStore(this.storeName).set('/Window/scrollLeft', window.scrollLeft);
         }
         installInServer(flux, req) {
-            flux.getStore(storeName).set('/Window/height', params.height);
-            flux.getStore(storeName).set('/Window/width', params.width);
-            flux.getStore(storeName).set('/Window/scrollTop', params.scrollTop);
-            flux.getStore(storeName).set('/Window/scrollLeft', params.scrollLeft);
+            flux.getStore(this.storeName).set('/Window/height', this.params.height);
+            flux.getStore(this.storeName).set('/Window/width', this.params.width);
+            flux.getStore(this.storeName).set('/Window/scrollTop', this.params.scrollTop);
+            flux.getStore(this.storeName).set('/Window/scrollLeft', this.params.scrollLeft);
         }
     }
+
+    _.extend(Window.prototype, /** @lends App.prototype */{
+      storeName: null,
+      dispatcherName: null,
+      eventEmitterName: null,
+      params: null,
+    });
 
     return Window;
 };

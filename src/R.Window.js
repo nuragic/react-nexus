@@ -1,31 +1,35 @@
 module.exports = function(R) {
-    var _ = require("lodash");
-    var assert = require("assert");
+    const _ = require("lodash");
+    const assert = require("assert");
 
-    var defaultParams = {
+    const defaultParams = {
         width: 1280,
         height: 720,
         scrollTop: 0,
         scrollLeft: 0,
     };
 
-    var Window = {
-        createPlugin: function createPlugin(storeName, dispatcherName, eventEmitterName, params) {
+    const Window = {
+        createPlugin(storeName, dispatcherName, eventEmitterName, params) {
             params = params || {};
             _.defaults(params, defaultParams);
             return R.App.createPlugin({
                 displayName: "Window",
-                installInClient: function installInClient(flux, window) {
-                    flux.getDispatcher(dispatcherName).addActionListener("/Window/scrollTo", function* scrollTo(params) {
-                        R.Debug.dev(function() {
-                            assert(_.isObject(params), "R.Window.Plugin.scrollTo.params: expecting Object.");
-                            assert(_.has(params, "top") && _.isNumber(params.top), "R.Window.Plugin.scrollTo.params.top: expecting Number.");
-                            assert(_.has(params, "left") && _.isNumber(params.left), "R.Window.Plugin.scrollTo.params.left: expecting Number.");
-                        });
-                        window.scrollTo(params.top, params.left);
-                        yield _.defer;
+                installInClient(flux, window) {
+                    flux.getDispatcher(dispatcherName).addActionListener("/Window/scrollTo", (params) => {
+                        return _.copromise(function* () {
+                            _.dev(() =>
+                                params.should.be.an.Object &&
+                                params.top.should.be.ok &&
+                                params.top.should.be.a.Number &&
+                                params.left.should.be.ok && 
+                                params.left.should.be.a.Number
+                                );
+                            window.scrollTo(params.top, params.left);
+                            yield _.defer;
+                        }, this);
                     });
-                    window.addEventListener("scroll", function() {
+                    window.addEventListener("scroll", () => {
                         flux.getStore(storeName).set("/Window/scrollTop", window.scrollTop);
                         flux.getStore(storeName).set("/Window/scrollLeft", window.scrollLeft);
                         flux.getEventEmitter(eventEmitterName).emit("/Window/scroll", {
@@ -33,7 +37,7 @@ module.exports = function(R) {
                             scrollLeft: window.scrollLeft,
                         });
                     });
-                    window.addEventListener("resize", function() {
+                    window.addEventListener("resize", () => {
                         flux.getStore(storeName).set("/Window/height", window.innerHeight);
                         flux.getStore(storeName).set("/Window/width", window.innerWidth);
                         flux.getEventEmitter(eventEmitterName).emit("/Window/resize", {
@@ -46,7 +50,7 @@ module.exports = function(R) {
                     flux.getStore(storeName).set("/Window/scrollTop", window.scrollTop);
                     flux.getStore(storeName).set("/Window/scrollLeft", window.scrollLeft);
                 },
-                installInServer: function installInServer(flux, req) {
+                installInServer(flux, req) {
                     flux.getStore(storeName).set("/Window/height", params.height);
                     flux.getStore(storeName).set("/Window/width", params.width);
                     flux.getStore(storeName).set("/Window/scrollTop", params.scrollTop);

@@ -1,6 +1,7 @@
 module.exports = function(R) {
     const _ = require("lodash");
     const assert = require("assert");
+    const should = R.should;
 
     const defaultParams = {
         width: 1280,

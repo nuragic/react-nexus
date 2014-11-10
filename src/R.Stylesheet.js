@@ -1,27 +1,29 @@
 module.exports = function(R) {
-    var _ = require("lodash");
-    var assert = require("assert");
+    const _ = require("lodash");
+    const assert = require("assert");
 
-    var Stylesheet = function Stylesheet() {
-        this._rules = [];
-    };
+    class Stylesheet {
+        constructor(){
+            this._rules = [];
+        }
 
-    _.extend(Stylesheet.prototype, /** @lends R.Stylesheet.prototype */ {
-        _isStylesheet_: true,
-        registerRule: function registerRule(selector, style) {
-            R.Debug.dev(function() {
-                assert(_.isPlainObject(style), "R.Stylesheet.registerClassName(...).style: expecting Object.");
-            });
+        registerRule(selector, style) {
+            _.dev(() => _.isPlainObject(style));
             this._rules.push({
                 selector: selector,
                 style: style,
             });
-        },
-        getProcessedCSS: function getProcessedCSS() {
-            return R.Style.applyAllProcessors(_.map(this._rules, function(rule) {
+        }
+
+        getProcessedCSS() {
+            return R.Style.applyAllProcessors(_.map(this._rules, (rule) => {
                 return rule.selector + " {\n" + R.Style.getCSSFromReactStyle(rule.style, "  ") + "}\n";
             }).join("\n"));
-        },
+        }
+    }
+
+    _.extend(Stylesheet.prototype, /** @lends R.Stylesheet.prototype */ {
+        _isStylesheet_: true,
     });
 
     return Stylesheet;

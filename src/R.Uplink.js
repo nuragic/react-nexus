@@ -2,6 +2,8 @@ module.exports = function(R) {
     const url = require("url");
     const _ = require("lodash");
     const assert = require("assert");
+    const should = R.should;
+    
     let request;
     if(R.isClient()) {
         request = require("browser-request");
@@ -47,16 +49,16 @@ module.exports = function(R) {
      * @class R.Uplink
      */
 
-    /**
-    * <p> Initializes the uplink according to the specifications provided </p>
-    * @method Uplink
-    * @param {object} httpEndpoint
-    * @param {object} socketEndpoint
-    * @param {object} guid
-    * @param {object} shouldReloadOnServerRestart
-    */
-
     class Uplink {
+
+        /**
+        * <p> Initializes the uplink according to the specifications provided </p>
+        * @method constructor
+        * @param {object} httpEndpoint
+        * @param {object} socketEndpoint
+        * @param {object} guid
+        * @param {object} shouldReloadOnServerRestart
+        */
         constructor(httpEndpoint, socketEndpoint, guid, shouldReloadOnServerRestart){
             this._httpEndpoint = httpEndpoint;
             this._socketEndPoint = socketEndpoint;
@@ -79,25 +81,14 @@ module.exports = function(R) {
             this.dispatch = R.scope(this.dispatch, this);
             this.shouldReloadOnServerRestart = shouldReloadOnServerRestart;
         }
-    }
 
-    _.extend(Uplink.prototype, /** @lends R.Uplink.prototype */ {
-        _httpEndpoint: null,
-        _socketEndPoint: null,
-        _subscriptions: null,
-        _listeners: null,
-        _socket: null,
-        _guid: null,
-        _pid: null,
-        ready: null,
-        shouldReloadOnServerRestart: null,
-        _acknowledgeHandshake: null,
         _debugLog() {
             let args = arguments;
             _.dev(() => {
                 console.log.apply(console, args);
             });
-        },
+        }
+
         /**
         * <p>Emits a socket signal to the uplink-server</p>
         * @param {string} name The name of the signal
@@ -108,7 +99,7 @@ module.exports = function(R) {
             _.dev(() => this._socket.should.be.ok && (null !== this._socket).should.be.ok);
             this._debugLog(">>> " + name, params);
             this._socket.emit(name, params);
-        },
+        }
 
         /**
         * <p> Creating io connection client-side in order to use sockets </p>
@@ -153,7 +144,7 @@ module.exports = function(R) {
             else {
                 this.ready = Promise.cast(true);
             }
-        },
+        }
         /**
         * <p>Server-side</p>
         * @method _initInServer
@@ -162,7 +153,7 @@ module.exports = function(R) {
         _initInServer() {
             _.dev(() => R.isServer().should.be.ok);
             this.ready = Promise.cast(true);
-        },
+        }
         /**
         * <p>Triggered when a data is updated according to the specific key <br />
         * Call corresponding function key </p>
@@ -200,7 +191,7 @@ module.exports = function(R) {
                     });
                 }
             });
-        },
+        }
         /**
         * @method _shouldFetchKey
         * @param {string} key
@@ -216,7 +207,7 @@ module.exports = function(R) {
                 return true;
             }
             return false;
-        },
+        }
 
         /**
         * <p>Determines if the the data must be fetched</p>
@@ -237,7 +228,7 @@ module.exports = function(R) {
                     }
                 }).call(this, fn);
             };
-        },
+        }
 
         /**
         * @method _handleEvent
@@ -253,7 +244,8 @@ module.exports = function(R) {
                     fn(eventParams);
                 });
             }
-        },
+        }
+
         /**
         * @method _handleDisconnect
         * @param {string} params
@@ -264,7 +256,8 @@ module.exports = function(R) {
             this.ready = new Promise((resolve, reject) => {
                 this._acknowledgeHandshake = resolve;
             });
-        },
+        }
+
         /**
         * <p>Occurs after a connection. When a connection is established, the client sends a signal "handshake".</p>
         * @method _handleDisconnect
@@ -274,7 +267,7 @@ module.exports = function(R) {
             this._debugLog("<<< connect");
             //notify uplink-server
             this._emit("handshake", { guid: this._guid });
-        },
+        }
 
         /**
         * <p> Identifies if the pid of the server has changed (due to a potential reboot server-side) since the last client connection. <br />
@@ -295,7 +288,8 @@ module.exports = function(R) {
             }
             this._pid = params.pid;
             this._acknowledgeHandshake(params);
-        },
+        }
+
         /**
         * @method _handleDebug
         * @params {object} params
@@ -306,7 +300,8 @@ module.exports = function(R) {
             _.dev(() => {
                 console.warn("R.Uplink.debug(...):", params.debug);
             });
-        },
+        }
+
         /**
         * @method _handleLog
         * @params {object} params
@@ -315,7 +310,8 @@ module.exports = function(R) {
         _handleLog(params) {
             this._debugLog("<<< log", params);
             console.log("R.Uplink.log(...):", params.log);
-        },
+        }
+
         /**
         * @method _handleWarn
         * @params {object} params
@@ -324,7 +320,8 @@ module.exports = function(R) {
         _handleWarn(params) {
             this._debugLog("<<< warn", params);
             console.warn("R.Uplink.warn(...):", params.warn);
-        },
+        }
+
         /**
         * @method _handleError
         * @params {object} params
@@ -333,7 +330,7 @@ module.exports = function(R) {
         _handleError(params) {
             this._debugLog("<<< error", params);
             console.error("R.Uplink.err(...):", params.err);
-        },
+        }
 
         /**
         * <p>Occurs when a client unloads the document</p>
@@ -349,7 +346,7 @@ module.exports = function(R) {
                 }
                 this._emit("unhandshake");
             };
-        },
+        }
 
         /**
         * <p>Simply closes the socket</p>
@@ -360,7 +357,7 @@ module.exports = function(R) {
             if(this._socket) {
                 this._socket.close();
             }
-        },
+        }
         /**
         * <p>Does nothing</p>
         * @method _destroyInClient
@@ -369,7 +366,7 @@ module.exports = function(R) {
         */
         _destroyInServer() {
             return void 0;
-        },
+        }
 
         /**
         * <p>Notifies the uplink-server that a subscription is required by client</p>
@@ -382,7 +379,7 @@ module.exports = function(R) {
                 yield this.ready;
                 this._emit("subscribeTo", { key: key });
             }).call(this, R.Debug.rethrow("R.Uplink._subscribeTo(...): couldn't subscribe (" + key + ")"));
-        },
+        }
 
         /**
         * <p>Notifies the uplink-server that a subscription is over</p>
@@ -395,7 +392,7 @@ module.exports = function(R) {
                 yield this.ready;
                 this._emit("unsubscribeFrom", { key: key });
             }).call(this, R.Debug.rethrow("R.Uplink._subscribeTo(...): couldn't unsubscribe (" + key + ")"));
-        },
+        }
 
         /**
         * <p>Etablishes a subscription to a key, and call the specified function when _handleUpdate occurs</p>
@@ -414,7 +411,7 @@ module.exports = function(R) {
             }
             this._subscriptions[key][subscription.uniqueId] = fn;
             return subscription;
-        },
+        }
 
         /**
         * <p>Removes a subscription to a key</p>
@@ -437,7 +434,8 @@ module.exports = function(R) {
                 delete this._hashes[key];
                 this._unsubscribeFrom(key);
             }
-        },
+        }
+
         /**
         * <p>Sends the listener signal "listenTo"</p>
         * @method _listenTo
@@ -449,7 +447,8 @@ module.exports = function(R) {
                 yield this.ready;
                 this._emit("listenTo", { eventName: eventName });
             }).call(this, R.Debug.rethrow("R.Uplink._listenTo: couldn't listen (" + eventName + ")"));
-        },
+        }
+
          /**
         * <p>Sends the unlistener signal "unlistenFrom"</p>
         * @method _unlistenFrom
@@ -461,7 +460,8 @@ module.exports = function(R) {
                 yield this.ready;
                 this._emit("unlistenFrom", { eventName: eventName });
             }).call(this, R.Debug.rethrow("R.Uplink._unlistenFrom: couldn't unlisten (" + eventName + ")"));
-        },
+        }
+
         /**
         * <p>Create a listener according to a specific name</p>
         * @method listenTo
@@ -477,7 +477,7 @@ module.exports = function(R) {
             }
             this._listeners[eventName][listener.uniqueId] = fn;
             return listener;
-        },
+        }
 
         /**
         * <p>Remove a listener </p>
@@ -498,7 +498,7 @@ module.exports = function(R) {
                 delete this._listeners[eventName];
                 this._unlistenFrom(eventName);
             }
-        },
+        }
         /**
         * @method _getFullUrl
         * @param {string} suffix
@@ -512,7 +512,8 @@ module.exports = function(R) {
             else {
                 return this._httpEndpoint + suffix;
             }
-        },
+        }
+
         /**
         * <p>Fetch data by GET request from the uplink-server</p>
         * @method fetch
@@ -539,7 +540,7 @@ module.exports = function(R) {
                     }
                 });
             });
-        },
+        }
 
         /**
         * <p>Dispatches an action by POST request from the uplink-server</p>
@@ -566,7 +567,8 @@ module.exports = function(R) {
                     }
                 });
             });
-        },
+        }
+
         /**
         * <p>Destroy socket client-side</p>
         * @method destroy
@@ -578,7 +580,20 @@ module.exports = function(R) {
             if(R.isServer()) {
                 this._destroyInServer();
             }
-        },
+        }
+    }
+
+    _.extend(Uplink.prototype, /** @lends R.Uplink.prototype */ {
+        _httpEndpoint: null,
+        _socketEndPoint: null,
+        _subscriptions: null,
+        _listeners: null,
+        _socket: null,
+        _guid: null,
+        _pid: null,
+        ready: null,
+        shouldReloadOnServerRestart: null,
+        _acknowledgeHandshake: null,
     });
 
     _.extend(Uplink, {

@@ -18,7 +18,7 @@ module.exports = function(R) {
         this.storeName = storeName;
         this.dispatcherName = dispatcherName;
         this.eventEmitterName = eventEmitterName;
-        this.params = params;
+        this.params = params || {};
         
         let store = flux.getStore(this.storeName);
         let eventEmitter = flux.getEventEmitter(this.eventEmitterName);
@@ -72,7 +72,7 @@ module.exports = function(R) {
     }
 
     _.extend(Window.prototype, /** @lends App.prototype */{
-      displayName: "Window",
+      displayName: 'Window',
       storeName: null,
       dispatcherName: null,
       eventEmitterName: null,

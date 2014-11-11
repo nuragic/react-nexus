@@ -2,20 +2,27 @@
  * TODO
  */
 module.exports = function(R) {
+  return (params) => {
     class XWindow extends R.App.plugin {
-        constructor(){
-            super();
+      constructor({ flux, window, req }){
+        super();
+        if(window) {
+         // Client-only init
         }
+        else {
+          // Server-only init
+        }
+      }
 
-        getDisplayName(){
-            return 'XWindow';
-        }
-
-        installInClient(flux, window) {
-        }
-
-        installInServer(flux, req) {
-        }
+      getDisplayName(){
+        return 'XWindow';
+      }
     }
+
+    _.extend(XWindow.prototype, {
+      displayName: 'XWindow',
+    });
+
     return XWindow;
+  };
 };

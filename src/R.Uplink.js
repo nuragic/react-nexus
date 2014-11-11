@@ -1,17 +1,16 @@
 module.exports = function(R) {
-    const url = require("url");
-    const _ = require("lodash");
-    const assert = require("assert");
+    const url = require('url');
+    const _ = require('lodash');
     const should = R.should;
 
     let request;
     if(R.isClient()) {
-        request = require("browser-request");
+        request = require('browser-request');
     }
     else {
-        request = require("request");
+        request = require('request');
     }
-    const co = require("co");
+    const co = require('co');
 
     /**
      * <p>The Uplink micro-protocol is a simple set of conventions to implement real-time reactive Flux over the wire. <br />
@@ -97,7 +96,7 @@ module.exports = function(R) {
         */
         _emit(name, params) {
             _.dev(() => this._socket.should.be.ok && (null !== this._socket).should.be.ok);
-            this._debugLog(">>> " + name, params);
+            this._debugLog('>>> ' + name, params);
             this._socket.emit(name, params);
         }
 
@@ -114,22 +113,22 @@ module.exports = function(R) {
                     io = window.io;
                 }
                 else {
-                    io = require("socket.io-client");
+                    io = require('socket.io-client');
                 }
                 this._subscriptions = {};
                 this._listeners = {};
                 //Connect to uplink server-side. Trigger the uplink-server on io.on("connection")
                 let socket = this._socket = io(this._socketEndPoint);
                 //Prepare all event client-side, listening:
-                socket.on("update", R.scope(this._handleUpdate, this));
-                socket.on("event", R.scope(this._handleEvent, this));
-                socket.on("disconnect", R.scope(this._handleDisconnect, this));
-                socket.on("connect", R.scope(this._handleConnect, this));
-                socket.on("handshake-ack", R.scope(this._handleHandshakeAck, this));
-                socket.on("debug", R.scope(this._handleDebug, this));
-                socket.on("log", R.scope(this._handleLog, this));
-                socket.on("warn", R.scope(this._handleWarn, this));
-                socket.on("err", R.scope(this._handleError, this));
+                socket.on('update', R.scope(this._handleUpdate, this));
+                socket.on('event', R.scope(this._handleEvent, this));
+                socket.on('disconnect', R.scope(this._handleDisconnect, this));
+                socket.on('connect', R.scope(this._handleConnect, this));
+                socket.on('handshake-ack', R.scope(this._handleHandshakeAck, this));
+                socket.on('debug', R.scope(this._handleDebug, this));
+                socket.on('log', R.scope(this._handleLog, this));
+                socket.on('warn', R.scope(this._handleWarn, this));
+                socket.on('err', R.scope(this._handleError, this));
                 this.ready = new Promise((resolve, reject) => {
                     this._acknowledgeHandshake = resolve;
                 });
@@ -162,22 +161,19 @@ module.exports = function(R) {
         * @private
         */
         _handleUpdate(params) {
-            this._debugLog("<<< update", params);
+            this._debugLog('<<< update', params);
             _.dev(() => 
                 params.should.be.an.object &&
-                params.k.should.be.ok &&
                 params.k.should.be.a.String &&
                 params.v.should.be.ok &&
-                params.d.should.be.ok &&
                 params.d.should.be.an.Array &&
-                params.h.should.be.ok &&
                 params.h.should.be.a.String
             );
             let key = params.k;
             this._performUpdateIfNecessary(key, params)((err, val) => {
                  _.dev(() => {
                     if(err) {
-                        throw R.Debug.extendError(err, "R.Uplink._handleUpdate(...): couldn't _performUpdateIfNecessary.");
+                        throw R.Debug.extendError(err, 'R.Uplink._handleUpdate(...): couldn\'t _performUpdateIfNecessary.');
                     }
                  });
                 if(err) {
@@ -236,7 +232,7 @@ module.exports = function(R) {
         * @private
         */
         _handleEvent(params) {
-            this._debugLog("<<< event", params.eventName);
+            this._debugLog('<<< event', params.eventName);
             let eventName = params.eventName;
             let eventParams = params.params;
             if(_.has(this._listeners, eventName)) {
@@ -252,7 +248,7 @@ module.exports = function(R) {
         * @private
         */
         _handleDisconnect(params) {
-            this._debugLog("<<< disconnect", params);
+            this._debugLog('<<< disconnect', params);
             this.ready = new Promise((resolve, reject) => {
                 this._acknowledgeHandshake = resolve;
             });
@@ -264,9 +260,9 @@ module.exports = function(R) {
         * @private
         */
         _handleConnect() {
-            this._debugLog("<<< connect");
+            this._debugLog('<<< connect');
             //notify uplink-server
-            this._emit("handshake", { guid: this._guid });
+            this._emit('handshake', { guid: this._guid });
         }
 
         /**
@@ -277,10 +273,10 @@ module.exports = function(R) {
         * @private
         */
         _handleHandshakeAck(params) {
-            this._debugLog("<<< handshake-ack", params);
+            this._debugLog('<<< handshake-ack', params);
             if(this._pid && params.pid !== this._pid && this.shouldReloadOnServerRestart) {
                 _.dev(() => {
-                    console.warn("Server pid has changed, reloading page.");
+                    console.warn('Server pid has changed, reloading page.');
                 });
                 setTimeout(() => {
                     window.location.reload(true);
@@ -296,9 +292,9 @@ module.exports = function(R) {
         * @private
         */
         _handleDebug(params) {
-            this._debugLog("<<< debug", params);
+            this._debugLog('<<< debug', params);
             _.dev(() => {
-                console.warn("R.Uplink.debug(...):", params.debug);
+                console.warn('R.Uplink.debug(...):', params.debug);
             });
         }
 
@@ -308,8 +304,8 @@ module.exports = function(R) {
         * @private
         */
         _handleLog(params) {
-            this._debugLog("<<< log", params);
-            console.log("R.Uplink.log(...):", params.log);
+            this._debugLog('<<< log', params);
+            console.log('R.Uplink.log(...):', params.log);
         }
 
         /**
@@ -318,8 +314,8 @@ module.exports = function(R) {
         * @private
         */
         _handleWarn(params) {
-            this._debugLog("<<< warn", params);
-            console.warn("R.Uplink.warn(...):", params.warn);
+            this._debugLog('<<< warn', params);
+            console.warn('R.Uplink.warn(...):', params.warn);
         }
 
         /**
@@ -328,8 +324,8 @@ module.exports = function(R) {
         * @private
         */
         _handleError(params) {
-            this._debugLog("<<< error", params);
-            console.error("R.Uplink.err(...):", params.err);
+            this._debugLog('<<< error', params);
+            console.error('R.Uplink.err(...):', params.err);
         }
 
         /**
@@ -344,7 +340,7 @@ module.exports = function(R) {
                 if(prevHandler) {
                     prevHandler();
                 }
-                this._emit("unhandshake");
+                this._emit('unhandshake');
             };
         }
 
@@ -377,8 +373,8 @@ module.exports = function(R) {
         _subscribeTo(key) {
             co(function*() {
                 yield this.ready;
-                this._emit("subscribeTo", { key: key });
-            }).call(this, R.Debug.rethrow("R.Uplink._subscribeTo(...): couldn't subscribe (" + key + ")"));
+                this._emit('subscribeTo', { key: key });
+            }).call(this, R.Debug.rethrow('R.Uplink._subscribeTo(...): couldn\'t subscribe (' + key + ')'));
         }
 
         /**
@@ -390,8 +386,8 @@ module.exports = function(R) {
         _unsubscribeFrom(key) {
             co(function*() {
                 yield this.ready;
-                this._emit("unsubscribeFrom", { key: key });
-            }).call(this, R.Debug.rethrow("R.Uplink._subscribeTo(...): couldn't unsubscribe (" + key + ")"));
+                this._emit('unsubscribeFrom', { key: key });
+            }).call(this, R.Debug.rethrow('R.Uplink._subscribeTo(...): couldn\'t unsubscribe (' + key + ')'));
         }
 
         /**
@@ -445,8 +441,8 @@ module.exports = function(R) {
         _listenTo(eventName) {
             co(function*() {
                 yield this.ready;
-                this._emit("listenTo", { eventName: eventName });
-            }).call(this, R.Debug.rethrow("R.Uplink._listenTo: couldn't listen (" + eventName + ")"));
+                this._emit('listenTo', { eventName: eventName });
+            }).call(this, R.Debug.rethrow('R.Uplink._listenTo: couldn\'t listen (' + eventName + ')'));
         }
 
          /**
@@ -458,8 +454,8 @@ module.exports = function(R) {
         _unlistenFrom(eventName) {
             co(function*() {
                 yield this.ready;
-                this._emit("unlistenFrom", { eventName: eventName });
-            }).call(this, R.Debug.rethrow("R.Uplink._unlistenFrom: couldn't unlisten (" + eventName + ")"));
+                this._emit('unlistenFrom', { eventName: eventName });
+            }).call(this, R.Debug.rethrow('R.Uplink._unlistenFrom: couldn\'t unlisten (' + eventName + ')'));
         }
 
         /**
@@ -506,7 +502,7 @@ module.exports = function(R) {
         * @private
         */
         _getFullUrl(suffix) {
-            if(suffix.slice(0, 1) === "/" && this._httpEndpoint.slice(-1) === "/") {
+            if(suffix.slice(0, 1) === '/' && this._httpEndpoint.slice(-1) === '/') {
                 return this._httpEndpoint.slice(0, -1) + suffix;
             }
             else {
@@ -522,16 +518,16 @@ module.exports = function(R) {
         */
         fetch(key) {
             return new Promise((resolve, reject) => {
-                this._debugLog(">>> fetch", key);
+                this._debugLog('>>> fetch', key);
                 request({
                     url: this._getFullUrl(key),
-                    method: "GET",
+                    method: 'GET',
                     json: true,
                     withCredentials: false,
                 }, function(err, res, body) {
                     if(err) {
                         _.dev(() => {
-                            console.warn("R.Uplink.fetch(...): couldn't fetch '" + key + "':", err.toString());
+                            console.warn('R.Uplink.fetch(...): couldn\'t fetch \'' + key + '\':', err.toString());
                         });
                         return resolve(null);
                     }
@@ -551,10 +547,10 @@ module.exports = function(R) {
         */
         dispatch(action, params) {
             return new Promise((resolve, reject) => {
-                this._debugLog(">>> dispatch", action, params);
+                this._debugLog('>>> dispatch', action, params);
                 request({
                     url: this._getFullUrl(action),
-                    method: "POST",
+                    method: 'POST',
                     body: { guid: this._guid, params: params },
                     json: true,
                     withCredentials: false,
@@ -599,11 +595,11 @@ module.exports = function(R) {
     _.extend(Uplink, {
         Subscription(key) {
             this.key = key;
-            this.uniqueId = _.uniqueId("R.Uplink.Subscription");
+            this.uniqueId = _.uniqueId('R.Uplink.Subscription');
         },
         Listener(eventName) {
             this.eventName = eventName;
-            this.uniqueId = _.uniqueId("R.Uplink.Listener");
+            this.uniqueId = _.uniqueId('R.Uplink.Listener');
         },
     });
 

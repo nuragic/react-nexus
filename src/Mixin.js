@@ -37,11 +37,11 @@ export default (Nexus) => ({
     return state;
   },
 
-  prefetchNexusBindings() {
+  prefetchNexusBindings: Promise.coroutine(function*() {
     const bindings = this.getNexusBindings(this.props);
-    return Promise.all(_.map(bindings, ([flux, path]) => flux.isPrefetching ? flux.prefetch(path) : Promise.resolve()))
-    .then(() => this); // return this to be chainable
-  },
+    yield Promise.all(_.map(bindings, ([flux, path]) => flux.isPrefetching ? flux.prefetch(path) : Promise.resolve(0)));
+    return this;
+  }),
 
   applyNexusBindings(props) {
     const previousBindingsLifespan = this.getNexusBindingsLifespan();

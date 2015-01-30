@@ -44,42 +44,34 @@ const Nexus = {
   // In the server, prefetch, then renderToString, then return the generated HTML string and the raw prefetched data,
   // which can then be injected into the server response (eg. using a global variable).
   // It will be used by the browser to call mountApp.
-  prerenderApp(rootElement, nexus) {
-    return Promise.try(() => {
-      if(__DEV__) {
-        React.isValidElement(rootElement).should.be.true;
-        nexus.should.be.an.Object;
-        __NODE__.should.be.true;
-        _.each(nexus, (flux) => flux.should.be.an.instanceOf(Flux.Client));
-      }
-      return Nexus._prefetchApp(rootElement, nexus)
-      .then((data) => {
-        _.each(nexus, (flux, key) => flux.startInjecting(data[key]));
-        const html = Nexus._withNexus(nexus, () => React.renderToString(rootElement));
-        _.each(nexus, (flux) => flux.stopInjecting());
-        return [html, data];
-      });
-    });
-  },
 
-  prerenderAppToStaticMarkup(rootElement, nexus) {
-    return Promise.try(() => {
-      if(__DEV__) {
-        React.isValidElement(rootElement).should.be.true;
-        nexus.should.be.an.Object;
-        __NODE__.should.be.true;
-        _.each(nexus, (flux) => flux.should.be.an.instanceOf(Flux.Client));
-      }
-      return Nexus._prefetchApp(rootElement, nexus)
-      .then((data) => {
-        _.each(nexus, (flux, key) => flux.startInjecting(data[key]));
-        const html = Nexus._withNexus(nexus, () => React.renderToStaticMarkup(rootElement));
-        _.each(nexus, (flux) => flux.stopInjecting());
-        return [html, data];
-      });
-    });
-  },
+  prerenderApp: Promise.coroutine(function*(rootElement, nexus) {
+    if(__DEV__) {
+      React.isValidElement(rootElement).should.be.true;
+      nexus.should.be.an.Object;
+      __NODE__.should.be.true;
+      _.each(nexus, (flux) => flux.should.be.an.instanceOf(Flux.Client));
+    }
+    const data = yield Nexus._prefetchApp(rootElement, nexus);
+    _.each(nexus, (flux, key) => flux.startInjecting(data[key]));
+    const html = Nexus._withNexus(nexus, () => React.renderToString(rootElement));
+    _.each(nexus, (flux) => flux.stopInjecting());
+    return [html, data];
+  }),
 
+  prerenderAppToStaticMarkup: Promise.coroutine(function*(rootElement, nexus) {
+    if(__DEV__) {
+      React.isValidElement(rootElement).should.be.true;
+      nexus.should.be.an.Object;
+      __NODE__.should.be.true;
+      _.each(nexus, (flux) => flux.should.be.an.instanceOf(Flux.Client));
+    }
+    const data = yield Nexus._prefetchApp(rootElement, nexus);
+    _.each(nexus, (flux, key) => flux.startInjecting(data[key]));
+    const html = Nexus._withNexus(nexus, () => React.renderToStaticMarkup(rootElement));
+    _.each(nexus, (flux) => flux.stopInjecting());
+    return [html, data];
+  }),
   // In the client, mount the rootElement using the given nexus and the given prefetched data into
   // the given domNode. Also globally and durably set the global nexus context.
   mountApp(rootElement, nexus, data, domNode) {
@@ -110,18 +102,17 @@ const Nexus = {
 
   // In the server, prefetch the dependencies and store them in the nexus as a side effect.
   // It will recursively prefetch all the nexus dependencies of all the components at the initial state.
-  _prefetchApp(rootElement, nexus) {
-    return Promise.try(() => {
-      if(__DEV__) {
-        React.isValidElement(rootElement).should.be.true;
-        nexus.should.be.an.Object;
-        __NODE__.should.be.true;
-      }
-      _.each(nexus, (flux) => flux.startPrefetching());
-      return Nexus._prefetchElement(rootElement, nexus);
-    })
-    .then(() => _.mapValues(nexus, (flux) => flux.stopPrefetching()));
-  },
+
+  _prefetchApp: Promise.coroutine(function*(rootElement, nexus) {
+    if(__DEV__) {
+      React.isValidElement(rootElement).should.be.true;
+      nexus.should.be.an.Object;
+      __NODE__.should.be.true;
+    }
+    _.each(nexus, (flux) => flux.startPrefetching());
+    yield Nexus._prefetchElement(rootElement, nexus);
+    return _.mapValues(nexus, (flux) => flux.stopPrefetching());
+  }),
 
   // Within a prefetchApp async stack, prefetch the dependencies of the given element and its descendants
   // it will:
@@ -131,31 +122,31 @@ const Nexus = {
   // - call render
   // - call componentWillUnmount
   // - yield to recursively prefetch descendant elements
-  _prefetchElement(element, nexus) {
-    return Promise.try(() => {
-      if(__DEV__) {
-        React.isValidElement(element).should.be.true;
-        nexus.should.be.an.Object;
-        __NODE__.should.be.true;
+  _prefetchElement: Promise.coroutine(function*(element, nexus) {
+    if(__DEV__) {
+      React.isValidElement(element).should.be.true;
+      nexus.should.be.an.Object;
+      __NODE__.should.be.true;
+    }
+    if(Nexus.shouldPrefetch(element)) {
+      const instance = instanciateReactComponent(element);
+      if(instance.prefetchNexusBindings) {
+        yield Nexus._withNexus(nexus, () => instance.prefetchNexusBindings());
       }
-      if(Nexus.shouldPrefetch(element)) {
-        return Nexus._withNexus(nexus, () => {
-          const instance = instanciateReactComponent(element);
-          return instance.prefetchNexusBindings ? instance.prefetchNexusBindings() : instance;
-        })
-        .then((instance) => Nexus._withNexus(nexus, () => {
-          instance.state = instance.getInitialState ? instance.getInitialState() : {};
-          if(instance.componentWillMount) {
-            instance.componentWillMount();
-          }
-          const renderedElement = instance.render ? instance.render() : null;
-          return Promise.all(_.map(flattenDescendants(renderedElement), (descendantElement) =>
-            Nexus._prefetchElement(descendantElement, nexus)
-          ));
-        }));
-      }
-    });
-  },
+      const renderedElement = Nexus._withNexus(nexus, () => {
+        if(instance.getInitialState) {
+          instance.state = instance.getInitialState();
+        }
+        if(instance.componentWillMount) {
+          instance.componentWillMount();
+        }
+        return instance.render();
+      });
+      yield Promise.all(_.map(flattenDescendants(renderedElement), (descendantElement) =>
+        Nexus._prefetchElement(descendantElement, nexus)
+      ));
+    }
+  }),
 };
 
 Nexus.Mixin = Mixin(Nexus);

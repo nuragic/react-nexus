@@ -66,56 +66,74 @@ var Nexus = {
   // In the server, prefetch, then renderToString, then return the generated HTML string and the raw prefetched data,
   // which can then be injected into the server response (eg. using a global variable).
   // It will be used by the browser to call mountApp.
-  prerenderApp: function prerenderApp(rootElement, nexus) {
-    return Promise["try"](function () {
-      if (__DEV__) {
-        React.isValidElement(rootElement).should.be["true"];
-        nexus.should.be.an.Object;
-        __NODE__.should.be["true"];
-        _.each(nexus, function (flux) {
-          return flux.should.be.an.instanceOf(Flux.Client);
-        });
-      }
-      return Nexus._prefetchApp(rootElement, nexus).then(function (data) {
-        _.each(nexus, function (flux, key) {
-          return flux.startInjecting(data[key]);
-        });
-        var html = Nexus._withNexus(nexus, function () {
-          return React.renderToString(rootElement);
-        });
-        _.each(nexus, function (flux) {
-          return flux.stopInjecting();
-        });
-        return [html, data];
-      });
-    });
-  },
 
-  prerenderAppToStaticMarkup: function prerenderAppToStaticMarkup(rootElement, nexus) {
-    return Promise["try"](function () {
-      if (__DEV__) {
-        React.isValidElement(rootElement).should.be["true"];
-        nexus.should.be.an.Object;
-        __NODE__.should.be["true"];
-        _.each(nexus, function (flux) {
-          return flux.should.be.an.instanceOf(Flux.Client);
-        });
+  prerenderApp: Promise.coroutine(regeneratorRuntime.mark(function callee$0$0(rootElement, nexus) {
+    var data, html;
+    return regeneratorRuntime.wrap(function callee$0$0$(context$1$0) {
+      while (1) switch (context$1$0.prev = context$1$0.next) {
+        case 0:
+          if (__DEV__) {
+            React.isValidElement(rootElement).should.be["true"];
+            nexus.should.be.an.Object;
+            __NODE__.should.be["true"];
+            _.each(nexus, function (flux) {
+              return flux.should.be.an.instanceOf(Flux.Client);
+            });
+          }
+          context$1$0.next = 3;
+          return Nexus._prefetchApp(rootElement, nexus);
+        case 3:
+          data = context$1$0.sent;
+          _.each(nexus, function (flux, key) {
+            return flux.startInjecting(data[key]);
+          });
+          html = Nexus._withNexus(nexus, function () {
+            return React.renderToString(rootElement);
+          });
+          _.each(nexus, function (flux) {
+            return flux.stopInjecting();
+          });
+          return context$1$0.abrupt("return", [html, data]);
+        case 8:
+        case "end":
+          return context$1$0.stop();
       }
-      return Nexus._prefetchApp(rootElement, nexus).then(function (data) {
-        _.each(nexus, function (flux, key) {
-          return flux.startInjecting(data[key]);
-        });
-        var html = Nexus._withNexus(nexus, function () {
-          return React.renderToStaticMarkup(rootElement);
-        });
-        _.each(nexus, function (flux) {
-          return flux.stopInjecting();
-        });
-        return [html, data];
-      });
-    });
-  },
+    }, callee$0$0, this);
+  })),
 
+  prerenderAppToStaticMarkup: Promise.coroutine(regeneratorRuntime.mark(function callee$0$1(rootElement, nexus) {
+    var data, html;
+    return regeneratorRuntime.wrap(function callee$0$1$(context$1$0) {
+      while (1) switch (context$1$0.prev = context$1$0.next) {
+        case 0:
+          if (__DEV__) {
+            React.isValidElement(rootElement).should.be["true"];
+            nexus.should.be.an.Object;
+            __NODE__.should.be["true"];
+            _.each(nexus, function (flux) {
+              return flux.should.be.an.instanceOf(Flux.Client);
+            });
+          }
+          context$1$0.next = 3;
+          return Nexus._prefetchApp(rootElement, nexus);
+        case 3:
+          data = context$1$0.sent;
+          _.each(nexus, function (flux, key) {
+            return flux.startInjecting(data[key]);
+          });
+          html = Nexus._withNexus(nexus, function () {
+            return React.renderToStaticMarkup(rootElement);
+          });
+          _.each(nexus, function (flux) {
+            return flux.stopInjecting();
+          });
+          return context$1$0.abrupt("return", [html, data]);
+        case 8:
+        case "end":
+          return context$1$0.stop();
+      }
+    }, callee$0$1, this);
+  })),
   // In the client, mount the rootElement using the given nexus and the given prefetched data into
   // the given domNode. Also globally and durably set the global nexus context.
   mountApp: function mountApp(rootElement, nexus, data, domNode) {
@@ -152,23 +170,31 @@ var Nexus = {
 
   // In the server, prefetch the dependencies and store them in the nexus as a side effect.
   // It will recursively prefetch all the nexus dependencies of all the components at the initial state.
-  _prefetchApp: function PrefetchApp(rootElement, nexus) {
-    return Promise["try"](function () {
-      if (__DEV__) {
-        React.isValidElement(rootElement).should.be["true"];
-        nexus.should.be.an.Object;
-        __NODE__.should.be["true"];
+
+  _prefetchApp: Promise.coroutine(regeneratorRuntime.mark(function callee$0$2(rootElement, nexus) {
+    return regeneratorRuntime.wrap(function callee$0$2$(context$1$0) {
+      while (1) switch (context$1$0.prev = context$1$0.next) {
+        case 0:
+          if (__DEV__) {
+            React.isValidElement(rootElement).should.be["true"];
+            nexus.should.be.an.Object;
+            __NODE__.should.be["true"];
+          }
+          _.each(nexus, function (flux) {
+            return flux.startPrefetching();
+          });
+          context$1$0.next = 4;
+          return Nexus._prefetchElement(rootElement, nexus);
+        case 4:
+          return context$1$0.abrupt("return", _.mapValues(nexus, function (flux) {
+            return flux.stopPrefetching();
+          }));
+        case 5:
+        case "end":
+          return context$1$0.stop();
       }
-      _.each(nexus, function (flux) {
-        return flux.startPrefetching();
-      });
-      return Nexus._prefetchElement(rootElement, nexus);
-    }).then(function () {
-      return _.mapValues(nexus, function (flux) {
-        return flux.stopPrefetching();
-      });
-    });
-  },
+    }, callee$0$2, this);
+  })),
 
   // Within a prefetchApp async stack, prefetch the dependencies of the given element and its descendants
   // it will:
@@ -178,32 +204,60 @@ var Nexus = {
   // - call render
   // - call componentWillUnmount
   // - yield to recursively prefetch descendant elements
-  _prefetchElement: function PrefetchElement(element, nexus) {
-    return Promise["try"](function () {
-      if (__DEV__) {
-        React.isValidElement(element).should.be["true"];
-        nexus.should.be.an.Object;
-        __NODE__.should.be["true"];
+  _prefetchElement: Promise.coroutine(regeneratorRuntime.mark(function callee$0$3(element, nexus) {
+    return regeneratorRuntime.wrap(function callee$0$3$(context$1$0) {
+      var _this = this;
+      while (1) switch (context$1$0.prev = context$1$0.next) {
+        case 0:
+          if (__DEV__) {
+            React.isValidElement(element).should.be["true"];
+            nexus.should.be.an.Object;
+            __NODE__.should.be["true"];
+          }
+          if (!Nexus.shouldPrefetch(element)) {
+            context$1$0.next = 3;
+            break;
+          }
+          return context$1$0.delegateYield(regeneratorRuntime.mark(function callee$1$0() {
+            var instance, renderedElement;
+            return regeneratorRuntime.wrap(function callee$1$0$(context$2$0) {
+              while (1) switch (context$2$0.prev = context$2$0.next) {
+                case 0:
+                  instance = instanciateReactComponent(element);
+                  if (!instance.prefetchNexusBindings) {
+                    context$2$0.next = 4;
+                    break;
+                  }
+                  context$2$0.next = 4;
+                  return Nexus._withNexus(nexus, function () {
+                    return instance.prefetchNexusBindings();
+                  });
+                case 4:
+                  renderedElement = Nexus._withNexus(nexus, function () {
+                    if (instance.getInitialState) {
+                      instance.state = instance.getInitialState();
+                    }
+                    if (instance.componentWillMount) {
+                      instance.componentWillMount();
+                    }
+                    return instance.render();
+                  });
+                  context$2$0.next = 7;
+                  return Promise.all(_.map(flattenDescendants(renderedElement), function (descendantElement) {
+                    return Nexus._prefetchElement(descendantElement, nexus);
+                  }));
+                case 7:
+                case "end":
+                  return context$2$0.stop();
+              }
+            }, callee$1$0, _this);
+          })(), "t0", 3);
+        case 3:
+        case "end":
+          return context$1$0.stop();
       }
-      if (Nexus.shouldPrefetch(element)) {
-        return Nexus._withNexus(nexus, function () {
-          var instance = instanciateReactComponent(element);
-          return instance.prefetchNexusBindings ? instance.prefetchNexusBindings() : instance;
-        }).then(function (instance) {
-          return Nexus._withNexus(nexus, function () {
-            instance.state = instance.getInitialState ? instance.getInitialState() : {};
-            if (instance.componentWillMount) {
-              instance.componentWillMount();
-            }
-            var renderedElement = instance.render ? instance.render() : null;
-            return Promise.all(_.map(flattenDescendants(renderedElement), function (descendantElement) {
-              return Nexus._prefetchElement(descendantElement, nexus);
-            }));
-          });
-        });
-      }
-    });
-  } };
+    }, callee$0$3, this);
+  })) };
 
 Nexus.Mixin = Mixin(Nexus);
 

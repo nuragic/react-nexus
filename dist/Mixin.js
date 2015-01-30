@@ -83,22 +83,31 @@ module.exports = function (Nexus) {
       return state;
     },
 
-    prefetchNexusBindings: function prefetchNexusBindings() {
-      var _this = this;
-      var bindings = this.getNexusBindings(this.props);
-      return Promise.all(_.map(bindings, function (_ref3) {
-        var _ref32 = _slicedToArray(_ref3, 2);
+    prefetchNexusBindings: Promise.coroutine(regeneratorRuntime.mark(function callee$1$0() {
+      var bindings;
+      return regeneratorRuntime.wrap(function callee$1$0$(context$2$0) {
+        while (1) switch (context$2$0.prev = context$2$0.next) {
+          case 0:
+            bindings = this.getNexusBindings(this.props);
+            context$2$0.next = 3;
+            return Promise.all(_.map(bindings, function (_ref3) {
+              var _ref32 = _slicedToArray(_ref3, 2);
 
-        var flux = _ref32[0];
-        var path = _ref32[1];
-        return flux.isPrefetching ? flux.prefetch(path) : Promise.resolve();
-      })).then(function () {
-        return _this;
-      }); // return this to be chainable
-    },
+              var flux = _ref32[0];
+              var path = _ref32[1];
+              return flux.isPrefetching ? flux.prefetch(path) : Promise.resolve(0);
+            }));
+          case 3:
+            return context$2$0.abrupt("return", this);
+          case 4:
+          case "end":
+            return context$2$0.stop();
+        }
+      }, callee$1$0, this);
+    })),
 
     applyNexusBindings: function applyNexusBindings(props) {
-      var _this2 = this;
+      var _this = this;
       var previousBindingsLifespan = this.getNexusBindingsLifespan();
       this._nexusBindingsLifespan = new Lifespan();
       var bindings = this.getNexusBindings(props);
@@ -107,11 +116,11 @@ module.exports = function (Nexus) {
 
         var flux = _ref42[0];
         var path = _ref42[1];
-        return _this2.setState(_defineProperty({}, stateKey, flux.Store(path, _this2._nexusBindingsLifespan).onUpdate(function (_ref5) {
+        return _this.setState(_defineProperty({}, stateKey, flux.Store(path, _this._nexusBindingsLifespan).onUpdate(function (_ref5) {
           var head = _ref5.head;
-          return _this2.setState(_defineProperty({}, stateKey, head));
+          return _this.setState(_defineProperty({}, stateKey, head));
         }).onDelete(function () {
-          return _this2.setState(_defineProperty({}, stateKey, void 0));
+          return _this.setState(_defineProperty({}, stateKey, void 0));
         }).value));
       });
       if (previousBindingsLifespan) {

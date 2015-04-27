@@ -78,7 +78,7 @@ exports['default'] = function (Nexus) {
           var defaultValue = _ref32[2];
 
           if (_this.getFlux(flux).isPrefetching) {
-            return _this.getFlux(flux).prefetch(path);
+            return _this.getFlux(flux).getPrefetched(path);
           }
           if (_this.getFlux(flux).isInjecting) {
             return _this.getFlux(flux).getInjected(path);

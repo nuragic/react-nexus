@@ -12,6 +12,8 @@ function checkBindings(bindings) {
   }
 }
 
+const [PREFETCH, INJECT, PENDING, LIVE] = _.range(4);
+
 export default (Nexus) => (Component, getNexusBindings) => class NexusElement extends React.Component {
   constructor(props) {
     if(__DEV__) {
@@ -24,12 +26,12 @@ export default (Nexus) => (Component, getNexusBindings) => class NexusElement ex
     checkBindings(bindings);
     this.state = _.mapValues(bindings, ([flux, path, defaultValue]) => {
       if(this.getFlux(flux).isPrefetching) {
-        return this.getFlux(flux).prefetch(path);
+        return [PREFETCH, this.getFlux(flux).prefetch(path)];
       }
       if(this.getFlux(flux).isInjecting) {
-        return this.getFlux(flux).getInjected(path);
+        return [INJECT, this.getFlux(flux).inject(path)];
       }
-      return defaultValue;
+      return [PENDING, defaultValue];
     });
   }
 
@@ -47,10 +49,27 @@ export default (Nexus) => (Component, getNexusBindings) => class NexusElement ex
     return this.getNexus()[flux];
   }
 
-  prefetchNexusBindings() {
-    const bindings = getNexusBindings(this.props);
-    return Promise.all(_.map(bindings, ([flux, path]) =>
-      this.getFlux(flux).isPrefetching ? this.getFlux(flux).prefetch(path) : Promise.resolve())
+  getCurrentValue(key) {
+    if(__DEV__) {
+      key.should.be.a.String;
+      this.state.should.have.property(key);
+    }
+    const [STATUS, value] = this.state;
+    // in this case only, the value is wrapped
+    if(STATUS === PREFETCH) {
+      if(__DEV__) {
+        value.should.have.property('isPending').which.is.a.Function;
+        value.isPending().should.be.false;
+      }
+      return value.value();
+    }
+    // in all other cases (INJECT, PENDING, LIVE) then the value is unwrapped
+    return value;
+  }
+
+  waitForPrefetching() {
+    return Promise.all(_.map(this.state, ([STATUS, value]) =>
+      STATUS === PREFETCH ? value : Promise.resolve()
     ).then(() => this);
   }
 
@@ -66,12 +85,10 @@ export default (Nexus) => (Component, getNexusBindings) => class NexusElement ex
       const addNextBinding = () => {
         const [flux, path, defaultValue] = next;
         const lifespan = nextLifespans[stateKey] = new Lifespan();
-        this.setState({
-          [stateKey]: this.getFlux(flux).getStore(path, lifespan)
-            .onUpdate(({ head }) => this.setState({ [stateKey]: head }))
-            .onDelete(() => this.setState({ [stateKey]: void 0 }))
-          .value || defaultValue,
-        });
+        this.getFlux(flux).getStore(path, lifespan)
+        .onUpdate(({ head }) => this.setState({ [stateKey]: [LIVE, head] }))
+        .onDelete(() => this.setState({ [stateKey]: void 0 }))
+        this.setState({ [stateKey]: [PENDING, defaultValue] });
       };
       const removePrevBinding = () => {
         this.setState({ [stateKey]: void 0 });

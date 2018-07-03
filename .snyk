@@ -1,0 +1,32 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.12.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:lodash:20180130':
+    - nexus-flux > remutable > babel > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - babel > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > babel > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > lifespan > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > lifespan > babel > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > remutable > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > nexus-events > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > nexus-events > babel > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > nexus-events > babel > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > nexus-events > babel > babel-core > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > nexus-events > lifespan > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
+    - nexus-flux > nexus-events > lifespan > babel > babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2018-07-03T02:42:06.992Z'
